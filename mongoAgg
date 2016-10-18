@@ -1,0 +1,83 @@
+--------------------------------------------------------------------------------------------------------------------------------------------
+4. Display a list that how many tutorials are written by each user
+> db.post.aggregate({$group:{_id:'$by',Total:{$sum:1}}})
+{ "_id" : "w3schools", "Total" : 2 }
+{ "_id" : "tutorials point", "Total" : 3 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+5. Compute the top five urls .($sum,$sort)
+> db.post.aggregate([{$group:{_id:"$by",TotalLikes:{$sum:'$likes'}}},{$sort:{TotalLikes:-1}}])
+{ "_id" : "tutorials point", "TotalLikes" : 900 }
+{ "_id" : "w3schools", "TotalLikes" : 130 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+6. Get the total count of the number of comments among all users.
+> db.post.aggregate([{$unwind:"$comments"},{$group:{_id:"NoOfComments",number:{$sum:1}}}])
+{ "_id" : "NoOfComments", "number" : 8 }
+ 
+--------------------------------------------------------------------------------------------------------------------------------------------
+7. Find total likes for “'http: //www.tutorialspoint.com'” only.
+> db.post.aggregate({$match:{url:"http://www.tutorialspoint.com"}},{$group:{_id:"http://www.tutorialspoint.com",TotalLikes:{$sum:"$likes"}}})
+{ "_id" : "http://www.tutorialspoint.com", "TotalLikes" : 900 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+8. Get all comments created after '2012-11-22’
+> db.post.aggregate([{$project:{comments:1,_id:0}},{$unwind:"$comments"},{$match:{'comments.dateCreated':{$gt:new ISODate("2012-11-22")}}}])
+{ "comments" : { "user" : "user3", "message" : "My first comment on MySQL", "dateCreated" : ISODate("2016-05-19T20:50:00Z"), "likes" : 10 } }
+{ "comments" : { "user" : "user4", "message" : "My second comment on MySQL", "dateCreated" : ISODate("2015-03-21T03:10:00Z"), "likes" : 50 } }
+{ "comments" : { "user" : "user4", "message" : "My first comment on jQuery", "dateCreated" : ISODate("2015-08-13T21:52:00Z"), "likes" : 300 } }
+{ "comments" : { "user" : "user2", "message" : "My second comment on jQuery", "dateCreated" : ISODate("2015-07-13T00:54:00Z"), "likes" : 200 } }
+{ "comments" : { "user" : "user1", "message" : "My first comment on Javascript", "dateCreated" : ISODate("2013-05-23T21:52:00Z"), "likes" : 104 } }
+{ "comments" : { "user" : "user4", "message" : "My second comment on Javascript", "dateCreated" : ISODate("2015-07-13T00:54:00Z"), "likes" : 40 } }
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+9. List how many comments are given by each user.
+> db.post.aggregate([{$unwind:"$comments"},{$group:{_id:'$comments.user',count:{$sum:1}}}])
+{ "_id" : "user4", "count" : 3 }
+{ "_id" : "user3", "count" : 1 }
+{ "_id" : "user2", "count" : 2 }
+{ "_id" : "user1", "count" : 2 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+3. Return all 'comments' from user 'user4' .($unwind)
+> db.post.aggregate([{$project:{comments:1,_id:0}},{$unwind:"$comments"},{$match:{'comments.user':'user4'}}]).pretty()
+{
+	"comments" : {
+		"user" : "user4",
+		"message" : "My second comment on MySQL",
+		"dateCreated" : ISODate("2015-03-21T03:10:00Z"),
+		"likes" : 50
+	}
+}
+{
+	"comments" : {
+		"user" : "user4",
+		"message" : "My first comment on jQuery",
+		"dateCreated" : ISODate("2015-08-13T21:52:00Z"),
+		"likes" : 300
+	}
+}
+{
+	"comments" : {
+		"user" : "user4",
+		"message" : "My second comment on Javascript",
+		"dateCreated" : ISODate("2015-07-13T00:54:00Z"),
+		"likes" : 40
+	}
+} 
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+4. Return url having likes above 500.($match,$sum)
+> db.post.aggregate([{$group:{_id:"$url",TotalLikes:{$sum:"$likes"}}},{$match:{TotalLikes:{$gt:500}}}])
+{ "_id" : "http://www.tutorialspoint.com", "TotalLikes" : 900 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+5. Return the Five Most Common tags�.
+> db.post.aggregate([{$unwind:"$tags"},{$group:{_id:"$tags",count:{$sum:1}}},{$sort:{count:-1}},{$limit:5}]).pretty()
+{ "_id" : "database", "count" : 3 }
+{ "_id" : "Javascript", "count" : 2 }
+{ "_id" : "nosql", "count" : 2 }
+{ "_id" : "Hadoop", "count" : 1 }
+{ "_id" : "language", "count" : 1 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------

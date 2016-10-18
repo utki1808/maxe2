@@ -1,0 +1,287 @@
+        __________________________________________________________________________
+        *Executing SQL Queries Exercises
+        __________________________________________________________________________
+        1. List full details of all hotels.
+
+        mysql> select * from Hotel;
+        +---------+--------------+--------+
+        | HotelNo | Name         | City   |
+        +---------+--------------+--------+
+        |     101 | Palavi       | Pune   |
+        |     102 | Ruchira      | London |
+        |     103 | Pooja_Resto  | Pune   |
+        |     104 | Chintu       | Pune   |
+        |     105 | Cafe_Delight | London |
+        |     106 | Durga        | Pune   |
+        |     107 | Mamta        | London |
+        +---------+--------------+--------+
+        7 rows in set (0.00 sec)
+        __________________________________________________________________________
+        2.  List full details of all hotels in London.
+
+        mysql> select * from Hotel where City = "London";
+        +---------+--------------+--------+
+        | HotelNo | Name         | City   |
+        +---------+--------------+--------+
+        |     102 | Ruchira      | London |
+        |     105 | Cafe_Delight | London |
+        |     107 | Mamta        | London |
+        +---------+--------------+--------+
+        3 rows in set (0.00 sec)
+        __________________________________________________________________________
+        3. List the names and addresses of all guests in London, alphabetically
+         ordered by name.
+
+        mysql> select GuestName, GuestAddress from Guest where GuestNo in (select
+         GuestNo from Booking where HotelNo in (select HotelNo from Hotel where City
+          = "London")) order by GuestName;
+        +-----------+--------------+
+        | GuestName | GuestAddress |
+        +-----------+--------------+
+        | Krushna   | SBRoad       |
+        | Mrunmay   | VimanNagar   |
+        | Neil      | Bhosari      |
+        | Rohit     | Baner        |
+        | Swapnil   | Kothrud      |
+        | Viraj     | Kondhwa      |
+        +-----------+--------------+
+        6 rows in set (0.00 sec)
+        __________________________________________________________________________
+        4. List all double or family rooms with a price below Â£40.00 per night,
+         in ascending order of price.
+        mysql> select * from Room where type in ("Family","Double") and price < 1500 order by price;
+        +--------+---------+--------+-------+
+        | RoomNo | HotelNo | type   | price |
+        +--------+---------+--------+-------+
+        |    201 |     107 | Family |  1100 |
+        |    201 |     106 | Family |  1100 |
+        |    203 |     107 | Double |  1200 |
+        |    201 |     102 | Family |  1200 |
+        |    204 |     101 | Double |  1300 |
+        |    204 |     103 | Double |  1300 |
+        |    203 |     102 | Double |  1400 |
+        |    203 |     106 | Double |  1400 |
+        |    205 |     101 | Double |  1400 |
+        |    205 |     103 | Double |  1400 |
+        +--------+---------+--------+-------+
+        10 rows in set (0.00 sec)
+        __________________________________________________________________________
+        
+        
+        
+        
+        5.  List the bookings for which no date_to has been specified.
+        mysql> select * from Booking where DateTo is NULL;
+        +---------+---------+------------+--------+--------+
+        | HotelNo | GuestNo | DateFrom   | DateTo | RoomNo |
+        +---------+---------+------------+--------+--------+
+        |     102 |    1008 | 2015-10-23 | NULL   |    103 |
+        |     103 |    1009 | 2015-01-23 | NULL   |    104 |
+        |     106 |    1012 | 2015-02-02 | NULL   |    105 |
+        |     107 |    1006 | 2015-02-27 | NULL   |    203 |
+        +---------+---------+------------+--------+--------+
+        4 rows in set (0.00 sec)
+        __________________________________________________________________________
+        *Aggregate Functions
+        __________________________________________________________________________
+        1.   How many hotels are there?
+        mysql> select count(*) as Number_of_Hotels from Hotel;
+        +------------------+
+        | Number_of_Hotels |
+        +------------------+
+        |                7 |
+        +------------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        2.   What is the average price of a room?
+        mysql> select avg(price) as Average_Room_Price from Room;
+        +--------------------+
+        | Average_Room_Price |
+        +--------------------+
+        |          1170.2899 |
+        +--------------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        3.  List all double or family rooms with a price below 1200 per night,
+         in ascending order of price.
+        mysql> select * from Room where price<=1200 and Type IN ("Double","Family")
+         order by price;
+        +--------+---------+--------+-------+
+        | RoomNo | HotelNo | type   | price |
+        +--------+---------+--------+-------+
+        |    201 |     106 | Family |  1100 |
+        |    201 |     107 | Family |  1100 |
+        |    201 |     102 | Family |  1200 |
+        |    203 |     107 | Double |  1200 |
+        +--------+---------+--------+-------+
+        4 rows in set (0.00 sec)
+        __________________________________________________________________________
+        4.   How many different guests have made bookings for August?
+        mysql> select count(distinct GuestNo) as Bookings_For_August from Booking
+         where month(DateFrom)=08 or month(DateTo)=08;
+        +---------------------+
+        | Bookings_For_August |
+        +---------------------+
+        |                   5 |
+        +---------------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        *Subqueries and Joins
+        __________________________________________________________________________
+        1.   List the price and type of all rooms at the Grosvenor Hotel.
+        mysql> select distinct type,price from Room where HotelNo = (Select HotelNo
+         from Hotel where Name = "Grosvenor Hotel");
+        +---------------+-------+
+        | type          | price |
+        +---------------+-------+
+        | Single Non_AC |   700 |
+        | Single AC     |   800 |
+        | Single Non_AC |   750 |
+        | Single AC     |  1000 |
+        | Family        |  1200 |
+        | Double        |  1400 |
+        +---------------+-------+
+        6 rows in set (0.00 sec)
+        __________________________________________________________________________
+        2.  List all guests currently staying at the Grosvenor Hotel.
+        mysql> select GuestName from Guest where GuestNo in (select GuestNo from
+         Booking where HotelNo=(select HotelNo from Hotel where Name = "Grosvenor Hotel")
+          and curdate() between DateFrom and DateTo);
+        +-----------+
+        | GuestName |
+        +-----------+
+        | Neil      |
+        | Viraj     |
+        +-----------+
+        2 rows in set (0.00 sec)
+        __________________________________________________________________________
+        3.  List the details of all rooms at the Grosvenor Hotel, including the name
+         of the guest staying in the room, if the room is occupied.
+        mysql> SELECT r.*,GuestName FROM Room r LEFT JOIN (SELECT g.GuestName, h.HotelNo,
+         b.RoomNo FROM Guest g, Booking b, Hotel h WHERE g.GuestNo = b.GuestNo AND
+          b.HotelNo = h.HotelNo AND h.Name= "Grosvenor Hotel" AND curdate() between
+           DateFrom AND DateTo) nnn ON r.HotelNo = nnn.HotelNo AND r.RoomNo = nnn.RoomNo
+            where r.HotelNo=(select HotelNo from Hotel where Name="Grosvenor Hotel");
+        +--------+---------+---------------+-------+-----------+
+        | RoomNo | HotelNo | type          | price | GuestName |
+        +--------+---------+---------------+-------+-----------+
+        |    101 |     102 | Single Non_AC |   700 | NULL      |
+        |    102 |     102 | Single AC     |   800 | NULL      |
+        |    103 |     102 | Single Non_AC |   750 | NULL      |
+        |    104 |     102 | Single AC     |   800 | Swapnil   |
+        |    105 |     102 | Single AC     |  1000 | NULL      |
+        |    201 |     102 | Family        |  1200 | NULL      |
+        |    202 |     102 | Single AC     |  1000 | NULL      |
+        |    203 |     102 | Double        |  1400 | NULL      |
+        |    204 |     102 | Single AC     |  1000 | NULL      |
+        +--------+---------+---------------+-------+-----------+
+        9 rows in set (0.00 sec)
+        __________________________________________________________________________
+        4.  What is the total income from bookings for the Grosvenor Hotel today?
+        mysql> select sum(price) as TotalIncome from Booking b,Room where 
+        b.HotelNo=(select HotelNo from Hotel where Name="Grosvenor Hotel") and
+         b.HotelNo=Room.HotelNo and b.RoomNo=Room.RoomNo and curdate() between DateFrom and DateTo;
+        +-------------+
+        | TotalIncome |
+        +-------------+
+        |        1800 |
+        +-------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        5.  List the rooms that are currently unoccupied at the Grosvenor Hotel.
+        mysql> select * from Room r where r.RoomNo NOT IN (select RoomNo from Booking
+         b where b.HotelNo=(select HotelNo from Hotel where Name="Grosvenor Hotel")) 
+         and r.HotelNo=(select HotelNo from Hotel where Name="Grosvenor Hotel");
+        +--------+---------+---------------+-------+
+        | RoomNo | HotelNo | type          | price |
+        +--------+---------+---------------+-------+
+        |    101 |     102 | Single Non_AC |   700 |
+        |    102 |     102 | Single AC     |   800 |
+        |    105 |     102 | Single AC     |  1000 |
+        |    201 |     102 | Family        |  1200 |
+        |    202 |     102 | Single AC     |  1000 |
+        |    203 |     102 | Double        |  1400 |
+        +--------+---------+---------------+-------+
+        6 rows in set (0.00 sec)
+        __________________________________________________________________________
+        6.  What is the lost income from unoccupied rooms at the Grosvenor Hotel?
+        mysql> select sum(price) as LostIncome from Room r where r.RoomNo NOT IN 
+        (select RoomNo from Booking b where b.HotelNo=(select HotelNo from Hotel 
+        where Name="Grosvenor Hotel")) and r.HotelNo=(select HotelNo from Hotel where Name="Grosvenor Hotel");
+        +------------+
+        | LostIncome |
+        +------------+
+        |       6100 |
+        +------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        *Grouping
+        __________________________________________________________________________
+        1.  List the number of rooms in each hotel.
+        mysql> select HotelNo,count(*) as No_Of_Rooms from Room group by HotelNo;
+        +---------+-------------+
+        | HotelNo | No_Of_Rooms |
+        +---------+-------------+
+        |     101 |          10 |
+        |     102 |           9 |
+        |     103 |          10 |
+        |     104 |          10 |
+        |     105 |          10 |
+        |     106 |          10 |
+        |     107 |          10 |
+        +---------+-------------+
+        7 rows in set (0.00 sec)
+        __________________________________________________________________________
+        2.  List the number of rooms in each hotel in London.
+        mysql> select HotelNo,count(*) as No_Of_Rooms from Room group by HotelNo
+         having HotelNo in (select HotelNo from Hotel where City="London");
+        +---------+-------------+
+        | HotelNo | No_Of_Rooms |
+        +---------+-------------+
+        |     102 |           9 |
+        |     105 |          10 |
+        |     107 |          10 |
+        +---------+-------------+
+        3 rows in set (0.00 sec)
+        __________________________________________________________________________
+        3. What is the average number of bookings for each hotel in April?
+        mysql> select avg(countB) from (select b.HotelNo,count(HotelNo) as countB
+         from Booking b where month(DateFrom)=04 or month(DateTo)=04 group by b.HotelNo) HCB;
+        +-------------+
+        | avg(countB) |
+        +-------------+
+        |      2.1429 |
+        +-------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        4.  What is the most commonly booked room type for each hotel in London?
+        mysql> select type as MostBookedRoomType,max(CType) as No_of_Times from
+         (select type,count(type) as CType from Room r,Booking b where r.HotelNo
+          in (select HotelNo from Hotel where City="London") AND b.RoomNo=r.RoomNo
+           AND b.HotelNo=r.HotelNo group by type) AS TC;
+        +--------------------+-------------+
+        | MostBookedRoomType | No_of_Times |
+        +--------------------+-------------+
+        | Double             |           3 |
+        +--------------------+-------------+
+        1 row in set (0.00 sec)
+        __________________________________________________________________________
+        5.  What is the lost income from unoccupied rooms at each hotel today?
+        mysql> select A.HotelNo,(A.SOA-B.SOC) as LostIncome from (select HotelNo,
+        sum(price) as SOA from Room group by HotelNo) as A left join (select r.HotelNo,
+        sum(price) as SOC from Room r,Booking b where r.HotelNo=b.HotelNo and
+         r.RoomNo=b.RoomNo and curdate() between DateFrom and DateTo group by HotelNo)
+          as B on A.HotelNo=B.HotelNo;
+        +---------+------------+
+        | HotelNo | LostIncome |
+        +---------+------------+
+        |     101 |      10750 |
+        |     102 |       6850 |
+        |     103 |      10950 |
+        |     104 |       NULL |
+        |     105 |       NULL |
+        |     106 |       8150 |
+        |     107 |       NULL |
+        +---------+------------+
+        7 rows in set (0.00 sec)
+        __________________________________________________________________________

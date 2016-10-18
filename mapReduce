@@ -1,0 +1,599 @@
+> use empInfo;
+switched to db empInfo
+> db.createCollection("EmpInfo");
+{ "ok" : 1 }
+
+> db.EmpInfo.insert({"name":"Leanne Flinn", "email":"leanne.flinn@unilogic.com", "work":"Unilogic", "age":27, "gender":"Male", "Salary":16660, "hobbies":["Acrobatics","Photography","Papier-Mache"]});
+> db.EmpInfo.insert({"name":"Piyush", "email":"piyush@google.com", "work":"Google", "age":20, "gender":"Male", "Salary":986660, "hobbies":["Music","Photography","Gaming"]});
+> db.EmpInfo.insert({"name":"Sara", "email":"sara@bosch.com", "work":"Stirling Bosch", "age":30, "gender":"Female", "Salary":796660, "hobbies":["Music","Photography","Acrobatics"]});
+> db.EmpInfo.insert({"name":"Subhash", "email":"subhash@yahoo.com", "work":"Yahoo", "age":21, "gender":"Male", "Salary":879660, "hobbies":["Music","Papier-Mache","Acrobatics"]});
+> 
+
+
+> db.EmpInfo.find().pretty()
+{
+	"_id" : ObjectId("57da11d8694448c416e14495"),
+	"name" : "Leanne Flinn",
+	"email" : "leanne.flinn@unilogic.com",
+	"work" : "Unilogic",
+	"age" : 27,
+	"gender" : "Male",
+	"Salary" : 16660,
+	"hobbies" : [
+		"Acrobatics",
+		"Photography",
+		"Papier-Mache"
+	]
+}
+{
+	"_id" : ObjectId("57da1241694448c416e14496"),
+	"name" : "Piyush",
+	"email" : "piyush@google.com",
+	"work" : "Google",
+	"age" : 20,
+	"gender" : "Male",
+	"Salary" : 986660,
+	"hobbies" : [
+		"Music",
+		"Photography",
+		"Gaming"
+	]
+}
+{
+	"_id" : ObjectId("57da12a6694448c416e14497"),
+	"name" : "Sara",
+	"email" : "sara@bosch.com",
+	"work" : "Stirling Bosch",
+	"age" : 30,
+	"gender" : "Female",
+	"Salary" : 796660,
+	"hobbies" : [
+		"Music",
+		"Photography",
+		"Acrobatics"
+	]
+}
+{
+	"_id" : ObjectId("57da12f3694448c416e14498"),
+	"name" : "Subhash",
+	"email" : "subhash@yahoo.com",
+	"work" : "Yahoo",
+	"age" : 21,
+	"gender" : "Male",
+	"Salary" : 879660,
+	"hobbies" : [
+		"Music",
+		"Papier-Mache",
+		"Acrobatics"
+	]
+}
+> 
+
+1. Get the count of Males and Females
+
+> var mapFunction1 = function() {emit(this.gender,{count : 1});}
+> var reduceFunction = function(key,values) { var sum=0; values.forEach(function(doc){ sum+=doc['count']; }); return {count:sum};}
+> var op=db.EmpInfo.mapReduce(mapFunction1,reduceFunction,{out:"output"});
+> db[op.result].find()
+{ "_id" : "Female", "value" : { "count" : 1 } }
+{ "_id" : "Male", "value" : { "count" : 3 } }
+> 
+
+2. Count the number of users in each hobby
+
+> var mapper = function() { for(var i=0;i<this.hobbies.length;i++) { var key=this.hobbies[i]; emit(key,1)} }
+> var reduceFunction = function(key,values) { var sum=0; values.forEach(function(doc){ sum+=doc['count']; }); return {count:sum};}
+> db.EmpInfo.mapReduce(mapper,reducer,{out:"Count"}).find()
+
+{ "_id" : "Acrobatics", "value" : 3 }
+{ "_id" : "Gaming", "value" : 1 }
+{ "_id" : "Music", "value" : 3 }
+{ "_id" : "Papier-Mache", "value" : 2 }
+{ "_id" : "Photography", "value" : 3 }
+
+
+
+****************************************************************************
+
+piyush@Jarvis:~$ mongo
+MongoDB shell version: 2.4.9
+connecting to: test
+> use zips;
+switched to db zips
+
+
+1. Import zip.json.
+
+2. Find total population in each state.
+
+> var mapFunction1 = function() {
+... emit(this.state,this.pop);
+... };
+> var reduceFunction1 = function(keyState,valuePop) {
+... return Array.sum(valuePop);
+... };
+> db.cityData.mapReduce(
+... mapFunction1,
+... reduceFunction1,
+... {out:"population"}
+... )
+{
+	"result" : "population",
+	"timeMillis" : 164,
+	"counts" : {
+		"input" : 2372,
+		"emit" : 2372,
+		"reduce" : 32,
+		"output" : 8
+	},
+	"ok" : 1,
+}
+> db.cityData.mapReduce( mapFunction1, reduceFunction1, {out:"population"} ).find()
+{ "_id" : "CT", "value" : 3287116 }
+{ "_id" : "MA", "value" : 6016425 }
+{ "_id" : "ME", "value" : 1226648 }
+{ "_id" : "NH", "value" : 1109252 }
+{ "_id" : "NJ", "value" : 7730188 }
+{ "_id" : "NY", "value" : 4051352 }
+{ "_id" : "RI", "value" : 1003218 }
+{ "_id" : "VT", "value" : 562758 }
+> 
+
+
+
+3. Find total population of state  “TN”.
+
+> var mapFunction1 = function() {
+... emit(this.state,this.pop);
+... };
+> var reduceFunction1 = function(keyState,valuePop) {
+... return Array.sum(valuePop);
+... };
+> db.cityData.mapReduce( mapFunction1, reduceFunction1, {query : {state:"TN"}, out:"population"}).find()
+> 
+> db.cityData.mapReduce( mapFunction1, reduceFunction1, {query : {state:"NY"}, out:"population"}).find()
+{ "_id" : "NY", "value" : 4051352 }
+
+
+
+****************************************************************************************
+
+> use Blog;
+switched to db Blog
+> db.createCollection("blog");
+{ "ok" : 1 }
+> 
+
+
+> db.blog.find().pretty()
+{
+	"_id" : ObjectId("57b558b747e6b3f79a21ef26"),
+	"title" : "Hadoop Overview",
+	"description" : "Hadoop has a nosql database",
+	"by" : "tutorials point",
+	"url" : "http://www.tutorialspoint.com",
+	"tags" : [
+		"Hadoop",
+		"database",
+		"nosql"
+	],
+	"likes" : 600,
+	"comments" : [ ]
+}
+{
+	"_id" : ObjectId("57b5576247e6b3f79a21ef24"),
+	"title" : "Mongodb overview",
+	"description" : "MOngodb is a nosql database",
+	"by" : "tutorials point",
+	"url" : "http://www.tutorialspoint.com",
+	"tags" : [
+		"MOngodb",
+		"database",
+		"nosql"
+	],
+	"likes" : 100,
+	"comments" : [
+		{
+			"user" : "user1",
+			"message" : "My first comment",
+			"dateCreated" : ISODate("2011-02-19T20:45:00Z"),
+			"likes" : 0
+		},
+		{
+			"user" : "user2",
+			"message" : "My second comments",
+			"dateCreated" : ISODate("2011-02-25T02:15:00Z"),
+			"likes" : 5
+		}
+	]
+}
+{
+	"_id" : ObjectId("57b5580947e6b3f79a21ef25"),
+	"title" : "MySQL overview",
+	"description" : "MySQL is a sql database",
+	"by" : "tutorials point",
+	"url" : "http://www.tutorialspoint.com",
+	"tags" : [
+		"MySQL",
+		"database",
+		"sql"
+	],
+	"likes" : 200,
+	"comments" : [
+		{
+			"user" : "user3",
+			"message" : "My first comment on MySQL",
+			"dateCreated" : ISODate("2016-05-19T20:50:00Z"),
+			"likes" : 10
+		},
+		{
+			"user" : "user4",
+			"message" : "My second comment on MySQL",
+			"dateCreated" : ISODate("2015-03-21T03:10:00Z"),
+			"likes" : 50
+		}
+	]
+}
+{
+	"_id" : ObjectId("57b559a147e6b3f79a21ef27"),
+	"title" : "Javascript Overview",
+	"description" : "Javascript is used for front end development",
+	"by" : "w3schools",
+	"url" : "http://www.w3schools.com",
+	"tags" : [
+		"Javascript",
+		"language",
+		"Front End"
+	],
+	"likes" : 65,
+	"comments" : [
+		{
+			"user" : "user1",
+			"message" : "My first comment on Javascript",
+			"dateCreated" : ISODate("2013-05-23T21:52:00Z"),
+			"likes" : 104
+		},
+		{
+			"user" : "user4",
+			"message" : "My second comment on Javascript",
+			"dateCreated" : ISODate("2015-07-13T00:54:00Z"),
+			"likes" : 40
+		}
+	],
+	"dislikes" : [
+		10
+	]
+}
+{
+	"_id" : ObjectId("57b55b7447e6b3f79a21ef28"),
+	"title" : "jQuery Overview",
+	"description" : "jquery is a library of javascript",
+	"by" : "w3schools",
+	"url" : "http://www.w3schools.com",
+	"tags" : [
+		"Javascript",
+		"jQuery",
+		"library"
+	],
+	"likes" : 65,
+	"comments" : [
+		{
+			"user" : "user4",
+			"message" : "My first comment on jQuery",
+			"dateCreated" : ISODate("2015-08-13T21:52:00Z"),
+			"likes" : 300
+		},
+		{
+			"user" : "user2",
+			"message" : "My second comment on jQuery",
+			"dateCreated" : ISODate("2015-07-13T00:54:00Z"),
+			"likes" : 200
+		}
+	]
+}
+
+
+1. Create database BlogSite.
+2. Create collection post.
+3. Insert 5 documents with above mentioned structure.
+
+4. Display a list that how many tutorials are written by each user
+> var mapper = function() {
+... emit(this.by,1);
+... };
+
+> var reducer = function(key,values) {
+... return Array.sum(values);
+... };
+> db.blog.mapReduce(mapper,reducer,{out:"Result"}).find();
+{ "_id" : "tutorials point", "value" : 3 }
+{ "_id" : "w3schools", "value" : 2 }
+> 
+
+
+
+5. Compute the top five urls .($sum,$sort)
+> var mapper = function() {emit(this.url,this.likes);};
+> var reducer = function(key,values) {
+... return Array.sum(values);
+... };
+{ "_id" : "http://www.tutorialspoint.com", "value" : 900 }
+> db.blog.mapReduce(mapper,reducer,{sort:{"likes":-1},limit:5,out:"Result"}).find();
+{ "_id" : "http://www.w3schools.com", "value" : 130 }
+> 
+
+
+6. Get the total count of the number of comments among all users.
+
+> var mapper = function() { for(var idx=0; idx < this.comments.length; idx++) { var key = this.comments[idx].user;emit(key,1);} };
+> var reducer = function(key,value) { return Array.sum(value); };
+> db.blog.mapReduce(mapper,reducer,{out:"Result"}).find();
+{ "_id" : "user1", "value" : 2 }
+{ "_id" : "user2", "value" : 2 }
+{ "_id" : "user3", "value" : 1 }
+{ "_id" : "user4", "value" : 3 }
+> 
+
+7. Find total likes for “'http: //www.tutorialspoint.com'” only.
+> var mapper = function() {emit(this.url,this.likes);};
+> var reducer = function(key,values) { return Array.sum(values); };
+> db.blog.mapReduce(mapper,reducer,{query:{url:"http://www.tutorialspoint.com"},out:"Result"}).find();
+{ "_id" : "http://www.tutorialspoint.com", "value" : 900 }
+> 
+
+
+****************************************************************************************
+
+> use library;
+switched to db library
+> db.createCollection("library");
+{ "ok" : 1 }
+> db.library.insert({
+... "book1":[
+... {
+... "name":"Understanding Java",
+... "pages":100,
+... "author":"Piyush",
+... "publisher":"O'Relly"
+... }]
+... })
+> db.library.insert({ "book2":[ { "name":"Understanding JSON", "pages":200, "author":"John", "publisher":"Mc'Graw Hill" }] })
+> db.library.insert({ "book3":[ { "name":"Understanding Hadoop", "pages":300, "author":"Mack", "publisher":"US Publications" }] })
+> db.library.find().pretty()
+{
+	"_id" : ObjectId("57da2a16694448c416e14499"),
+	"book1" : [
+		{
+			"name" : "Understanding Java",
+			"pages" : 100,
+			"author" : "Piyush",
+			"publisher" : "O'Relly"
+		}
+	]
+}
+{
+	"_id" : ObjectId("57da2a58694448c416e1449a"),
+	"book2" : [
+		{
+			"name" : "Understanding JSON",
+			"pages" : 200,
+			"author" : "John",
+			"publisher" : "Mc'Graw Hill"
+		}
+	]
+}
+{
+	"_id" : ObjectId("57da2a85694448c416e1449b"),
+	"book3" : [
+		{
+			"name" : "Understanding Hadoop",
+			"pages" : 300,
+			"author" : "Mack",
+			"publisher" : "US Publications"
+		}
+	]
+}
+> 
+
+
+Write MapReduce program to find the number of books having pages less 250 pages and greater than that.
+
+
+**********************************************************************************
+> use library1;
+switched to db library1
+> db.createCollection("library");
+{ "ok" : 1 }
+> db.library.insert({
+... name : "Understanding Java",
+... pages : 100,
+... pubisher : "O'Relly"},
+... {name : "Understanding XML",
+... pages : 200,
+... publisher : "US Publications"},
+... {name : "Understanding JSON",
+... pages : 200,
+... publisher : "Mc'Graw Hill"});
+WriteResult({ "nInserted" : 1 })
+> 
+
+> db.library.insert({ name : "Understanding JSON", pages : 200, pubisher : "Mc'Graw Hill"});
+WriteResult({ "nInserted" : 1 })
+> db.library.insert({ name : "Understanding Web Service", pages : 300, pubisher : "Mc'Graw Hill"});
+WriteResult({ "nInserted" : 1 })
+> db.library.insert({ name : "Understanding Hadoop", pages : 200, pubisher : "Mc'Graw Hill"});
+WriteResult({ "nInserted" : 1 })
+
+> db.library.find().pretty()
+{
+	"_id" : ObjectId("57dc3406af5b6b5c8f8e15bf"),
+	"name" : "Understanding Java",
+	"pages" : 100,
+	"pubisher" : "O'Relly"
+}
+{
+	"_id" : ObjectId("57dc3452af5b6b5c8f8e15c0"),
+	"name" : "Understanding JSON",
+	"pages" : 200,
+	"pubisher" : "Mc'Graw Hill"
+}
+{
+	"_id" : ObjectId("57dcc21b3436a97c1d5a4a2d"),
+	"name" : "Understanding Web Service",
+	"pages" : 300,
+	"pubisher" : "Mc'Graw Hill"
+}
+{
+	"_id" : ObjectId("57dcc22c3436a97c1d5a4a2e"),
+	"name" : "Understanding Hadoop",
+	"pages" : 200,
+	"pubisher" : "Mc'Graw Hill"
+}
+> 
+
+Write MapReduce program to find the number of books having pages less 250 pages and greater than that.
+
+> var map = function() { var category; if(this.pages >= 250) { category = 'Big Books';} else { category = 'Small Books';} emit(category,{name:this.name}); };
+> var reduce = function(key,values) { var sum=0; values.forEach(function(doc) { sum+=1; }); return{books:sum}; };
+> var count = db.library.mapReduce(map,reduce,{out:"Book_Results"});
+> db[count.result].find();
+{ "_id" : "Big Books", "value" : { "name" : "Understanding Web Service" } }
+{ "_id" : "Small Books", "value" : { "books" : 3 } }
+> 
+
+**********************************************************************************
+
+> use book;
+switched to db book
+> db.createCollection("book");
+{ "ok" : 1 }
+> db.book.insert({
+... "pageID":"page1",
+... "content":"Your page1 content"})
+> db.book.insert({ "pageID":"page2", "content":"Your page2 content"})
+> db.book.insert({ "pageID":"page3", "content":"Your page3 content"})
+> db.book.find().pretty()
+{
+	"_id" : ObjectId("57da2b79694448c416e1449c"),
+	"pageID" : "page1",
+	"content" : "Your page1 content"
+}
+{
+	"_id" : ObjectId("57da2b85694448c416e1449d"),
+	"pageID" : "page2",
+	"content" : "Your page2 content"
+}
+{
+	"_id" : ObjectId("57da2b8c694448c416e1449e"),
+	"pageID" : "page3",
+	"content" : "Your page3 content"
+}
+> 
+
+Write MapReduce program to find the number of words in each book
+
+> var mapper = function() {
+... var cons = this.content.split('');
+... for(i in cons) {
+... emit(cons[i],1);
+... }
+... };
+> var reducer = function(key,values) {
+... return Array.sum(values);
+... };
+> db.book.mapReduce(mapper,reducer,{out:"Result"});
+{
+	"result" : "Result",
+	"timeMillis" : 30,
+	"counts" : {
+		"input" : 3,
+		"emit" : 54,
+		"reduce" : 12,
+		"output" : 15
+	},
+	"ok" : 1
+}
+> db.book.mapReduce(mapper,reducer,{out:"Result"}).find();
+{ "_id" : " ", "value" : 6 }
+{ "_id" : "1", "value" : 1 }
+{ "_id" : "2", "value" : 1 }
+{ "_id" : "3", "value" : 1 }
+{ "_id" : "Y", "value" : 3 }
+{ "_id" : "a", "value" : 3 }
+{ "_id" : "c", "value" : 3 }
+{ "_id" : "e", "value" : 6 }
+{ "_id" : "g", "value" : 3 }
+{ "_id" : "n", "value" : 6 }
+{ "_id" : "o", "value" : 6 }
+{ "_id" : "p", "value" : 3 }
+{ "_id" : "r", "value" : 3 }
+{ "_id" : "t", "value" : 6 }
+{ "_id" : "u", "value" : 3 }
+> 
+
+
+
+**********************************************************************************
+> use Movies;
+switched to db Movies
+> db.createCollection("movie");
+{ "ok" : 1 }
+> db.movie.insert({
+... "Title":"The Perfect Developer","Category":"SciFi",Minutes:118});
+> db.movie.insert({ "Title":"Lost in Frankfurt ","Category":"Horror",Minutes:122});
+> db.movie.insert({ "Title":"The infinite standup","Category":"Horror",Minutes:341});
+> db.movie.find().pretty()
+{
+	"_id" : ObjectId("57da2ce1694448c416e1449f"),
+	"Title" : "The Perfect Developer",
+	"Category" : "SciFi",
+	"Minutes" : 118
+}
+{
+	"_id" : ObjectId("57da2cff694448c416e144a0"),
+	"Title" : "Lost in Frankfurt ",
+	"Category" : "Horror",
+	"Minutes" : 122
+}
+{
+	"_id" : ObjectId("57da2d14694448c416e144a1"),
+	"Title" : "The infinite standup",
+	"Category" : "Horror",
+	"Minutes" : 341
+}
+> 
+
+
+Write MapReduce program to find the total number of movies in each category, along with the total length and average length per category.
+
+> var map = function() {
+... emit(this.Category,{count:1,totalMinutes:this.Minutes})
+... };
+> var reduce = function(key,values) {
+... var result = {count:0,totalMinutes:0};
+... values.forEach(function(value) {
+... result.count += value.count;
+... result.totalMinutes += value.totalMinutes;
+... });
+... return result;
+... };
+> var finalize1 = function(key,value) {
+... value.average = value.totalMinutes/value.count;
+... return value;
+... };
+> db.movie.mapReduce(map,reduce,{out:"Result",finalize:finalize1}).find();
+{ "_id" : "Horror", "value" : { "count" : 2, "totalMinutes" : 463, "average" : 231.5 } }
+{ "_id" : "SciFi", "value" : { "count" : 1, "totalMinutes" : 118, "average" : 118 } }
+> 
+
+
+
+********************************************************************************
+
+
+
+
+
+
+
+
